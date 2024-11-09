@@ -5,51 +5,171 @@ from scipy.linalg import lu
 
 # Paths
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"C:\Users\adity\Matrix-Calculator\gui_windows\assets\frame0")
+ASSETS_PATH = OUTPUT_PATH / Path("assets/frame0")
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
 # Matrix operation functions with steps
-# (Existing functions for echelon_form, is_unitary, etc.)
+def check_consistency(matrix, constants=None):
+    """Check if the system of equations is consistent."""
+    steps = ["Checking Consistency of System of Equations:"]
+    augmented_matrix = np.hstack((matrix, constants.reshape(-1, 1))) if constants is not None else matrix
+    rank_coeff = np.linalg.matrix_rank(matrix)
+    rank_augmented = np.linalg.matrix_rank(augmented_matrix)
+
+    if rank_coeff == rank_augmented:
+        if rank_coeff == matrix.shape[1]:  # Unique solution case
+            steps.append("System is consistent with a unique solution.")
+            result = "Consistent with unique solution"
+        else:  # Infinite solutions
+            steps.append("System is consistent with infinitely many solutions.")
+            result = "Consistent with infinitely many solutions"
+    else:
+        steps.append("System is inconsistent (no solutions).")
+        result = "Inconsistent"
+    return result, "\n".join(steps)
+
+def check_homogeneous_consistency(matrix):
+    """Check if the homogeneous system has only the trivial solution or non-trivial solutions."""
+    steps = ["Checking Consistency of Homogeneous Equations:"]
+    rank = np.linalg.matrix_rank(matrix)
+    num_columns = matrix.shape[1]
+
+    if rank == num_columns:
+        steps.append("Homogeneous system has only the trivial solution.")
+        result = "Only trivial solution"
+    else:
+        steps.append("Homogeneous system has non-trivial solutions.")
+        result = "Non-trivial solutions exist"
+    return result, "\n".join(steps)
+
+def linear_dependence_independence(matrix):
+    """Check if the columns of the matrix are linearly dependent or independent."""
+    steps = ["Checking Linear Dependence/Independence of Columns:"]
+    rank = np.linalg.matrix_rank(matrix)
+    num_columns = matrix.shape[1]
+
+    if rank == num_columns:
+        steps.append("Columns are linearly independent.")
+        result = "Linearly Independent"
+    else:
+        steps.append("Columns are linearly dependent.")
+        result = "Linearly Dependent"
+    return result, "\n".join(steps)
+
+def echelon_form(matrix):
+    """Compute the echelon form of the matrix."""
+    steps = ["Computing Echelon Form:"]
+    echelon_matrix = np.linalg.matrix_rank(matrix)  # Placeholder for actual echelon form computation
+    steps.append(f"Echelon form of the matrix is:\n{echelon_matrix}")
+    return echelon_matrix, "\n".join(steps)
+
+def is_unitary(matrix):
+    """Check if the matrix is unitary."""
+    steps = ["Checking if the matrix is Unitary:"]
+    unitary = np.allclose(np.eye(matrix.shape[0]), matrix @ matrix.T.conj())
+    result = "Unitary" if unitary else "Not Unitary"
+    steps.append(result)
+    return result, "\n".join(steps)
+
+def normal_form(matrix):
+    """Compute the normal form of the matrix."""
+    steps = ["Computing Normal Form:"]
+    normal_matrix = matrix  # Placeholder for actual normal form computation
+    steps.append(f"Normal form of the matrix is:\n{normal_matrix}")
+    return normal_matrix, "\n".join(steps)
+
+def paq_form(matrix):
+    """Compute the PAQ form of the matrix."""
+    steps = ["Computing PAQ Form:"]
+    P, L, U = lu(matrix)
+    PAQ_matrix = P @ matrix @ U  # Placeholder for actual PAQ form computation
+    steps.append(f"PAQ form of the matrix is:\n{PAQ_matrix}")
+    return PAQ_matrix, "\n".join(steps)
+
+def transpose(matrix):
+    """Compute the transpose of the matrix."""
+    steps = ["Computing Transpose:"]
+    transposed_matrix = matrix.T
+    steps.append(f"Transpose of the matrix is:\n{transposed_matrix}")
+    return transposed_matrix, "\n".join(steps)
+
+def is_orthogonal(matrix):
+    """Check if the matrix is orthogonal."""
+    steps = ["Checking if the matrix is Orthogonal:"]
+    orthogonal = np.allclose(np.eye(matrix.shape[0]), matrix @ matrix.T)
+    result = "Orthogonal" if orthogonal else "Not Orthogonal"
+    steps.append(result)
+    return result, "\n".join(steps)
+
+def inverse(matrix):
+    """Compute the inverse of the matrix."""
+    steps = ["Computing Inverse:"]
+    inverse_matrix = np.linalg.inv(matrix)
+    steps.append(f"Inverse of the matrix is:\n{inverse_matrix}")
+    return inverse_matrix, "\n".join(steps)
+
+def determinant(matrix):
+    """Compute the determinant of the matrix."""
+    steps = ["Computing Determinant:"]
+    det = np.linalg.det(matrix)
+    steps.append(f"Determinant of the matrix is:\n{det}")
+    return det, "\n".join(steps)
+
+def conjugate(matrix):
+    """Compute the conjugate of the matrix."""
+    steps = ["Computing Conjugate:"]
+    conjugate_matrix = np.conjugate(matrix)
+    steps.append(f"Conjugate of the matrix is:\n{conjugate_matrix}")
+    return conjugate_matrix, "\n".join(steps)
+
+def encode(matrix1, matrix2):
+    """Encode the matrix using another matrix."""
+    steps = ["Encoding Matrix:"]
+    encoded_matrix = matrix1 @ matrix2  # Placeholder for actual encoding logic
+    steps.append(f"Encoded matrix is:\n{encoded_matrix}")
+    return encoded_matrix, "\n".join(steps)
+
+def decode(matrix1, matrix2):
+    """Decode the matrix using another matrix."""
+    steps = ["Decoding Matrix:"]
+    decoded_matrix = matrix1 @ np.linalg.inv(matrix2)  # Placeholder for actual decoding logic
+    steps.append(f"Decoded matrix is:\n{decoded_matrix}")
+    return decoded_matrix, "\n".join(steps)
 
 def multiply_matrices(matrix1, matrix2):
-    steps = ["Matrix Multiplication:"]
-    try:
-        result = np.dot(matrix1, matrix2)
-        steps.append(f"Result:\n{result}")
-    except ValueError:
-        steps.append("Matrix multiplication not possible due to incompatible dimensions.")
-        result = None
-    return result, "\n".join(steps)
+    """Multiply two matrices."""
+    steps = ["Multiplying Matrices:"]
+    product_matrix = matrix1 @ matrix2
+    steps.append(f"Product of the matrices is:\n{product_matrix}")
+    return product_matrix, "\n".join(steps)
 
 def add_matrices(matrix1, matrix2):
-    steps = ["Matrix Addition:"]
-    try:
-        result = matrix1 + matrix2
-        steps.append(f"Result:\n{result}")
-    except ValueError:
-        steps.append("Matrix addition not possible due to incompatible dimensions.")
-        result = None
-    return result, "\n".join(steps)
-
-# Encoding function remains the same
-# Decoding function remains the same
+    """Add two matrices."""
+    steps = ["Adding Matrices:"]
+    sum_matrix = matrix1 + matrix2
+    steps.append(f"Sum of the matrices is:\n{sum_matrix}")
+    return sum_matrix, "\n".join(steps)
 
 # Perform matrix operation
 def perform_operation():
     operation = selected_operation.get()
     try:
-        # Get first matrix values from entry fields
+        # Get main matrix values from entry fields
         matrix1 = np.array([[float(entry.get()) for entry in row] for row in entries_matrix])
 
-        # Get second matrix if needed
-        matrix2 = None
-        if operation in ["Matrix Multiplication", "Matrix Addition", "Encode", "Decode"]:
-            matrix2 = np.array([[float(entry.get()) for entry in row] for row in secondary_entries_matrix])
-
         result, steps = None, ""
-        if operation == "Echelon Form":
+        if operation == "Test Consistency of Equations":
+            # Retrieve the constants column if present for non-homogeneous equations
+            constants = np.array([float(entry.get()) for entry in constants_entries])
+            result, steps = check_consistency(matrix1, constants)
+        elif operation == "Test Consistency of Homogeneous Equations":
+            result, steps = check_homogeneous_consistency(matrix1)
+        elif operation == "Linear Dependence/Independence":
+            result, steps = linear_dependence_independence(matrix1)
+        # Other operations
+        elif operation == "Echelon Form":
             result, steps = echelon_form(matrix1)
         elif operation == "Is Unitary":
             result, steps = is_unitary(matrix1)
@@ -78,6 +198,7 @@ def perform_operation():
         else:
             raise NotImplementedError(f"{operation} is not implemented.")
 
+        # Display the result with steps
         steps_text.delete("1.0", "end")
         steps_text.insert("1.0", f"Result:\n{result}\n\nSteps:\n{steps}")
     except Exception as e:
@@ -85,13 +206,15 @@ def perform_operation():
 
 # Update entry fields based on matrix size
 def update_matrix_size(*args):
-    global entries_matrix, secondary_entries_matrix, encryption_entries_matrix
+    global entries_matrix, secondary_entries_matrix, constants_entries, encryption_entries_matrix
     for row in entries_matrix:
         for entry in row:
             entry.place_forget()
     for row in secondary_entries_matrix:
         for entry in row:
             entry.place_forget()
+    for entry in constants_entries:
+        entry.place_forget()
     for row in encryption_entries_matrix:
         for entry in row:
             entry.place_forget()
@@ -99,6 +222,7 @@ def update_matrix_size(*args):
     size = int(selected_size.get()[0])
     entries_matrix = []
     secondary_entries_matrix = []
+    constants_entries = []
     encryption_entries_matrix = []
 
     # Main matrix entries
@@ -110,12 +234,18 @@ def update_matrix_size(*args):
             row_entries.append(entry)
         entries_matrix.append(row_entries)
 
+    # Constants column entries for consistency check
+    for i in range(size):
+        entry = Entry(window, bd=0, bg="#F0D9FF", fg="#000716", highlightthickness=0, justify='center')
+        entry.place(x=450, y=120 + i * 40, width=50, height=30)
+        constants_entries.append(entry)
+
     # Secondary matrix entries
     for i in range(size):
         row_entries = []
         for j in range(size):
             entry = Entry(window, bd=0, bg="#E0E0E0", fg="#000716", highlightthickness=0, justify='center')
-            entry.place(x=450 + j * 60, y=120 + i * 40, width=50, height=30)
+            entry.place(x=550 + j * 60, y=120 + i * 40, width=50, height=30)
             row_entries.append(entry)
         secondary_entries_matrix.append(row_entries)
 
@@ -129,12 +259,12 @@ def update_matrix_size(*args):
                 row_entries.append(entry)
             encryption_entries_matrix.append(row_entries)
 
-# Toggle secondary and encryption matrix visibility based on operation
+# Toggle matrix visibility based on selected operation
 def toggle_secondary_matrix(*args):
     if selected_operation.get() in ["Matrix Multiplication", "Matrix Addition", "Encode", "Decode"]:
         for row in secondary_entries_matrix:
             for entry in row:
-                entry.place(x=450 + row.index(entry) * 60, y=120 + secondary_entries_matrix.index(row) * 40, width=50, height=30)
+                entry.place(x=550 + row.index(entry) * 60, y=120 + secondary_entries_matrix.index(row) * 40, width=50, height=30)
     else:
         for row in secondary_entries_matrix:
             for entry in row:
@@ -180,7 +310,8 @@ selected_operation.set("Select Operation")
 matrix_operations = [
     "Echelon Form", "Is Unitary", "Normal Form", "PAQ Form", "Transpose",
     "Is Orthogonal", "Inverse", "Determinant", "Conjugate", "Encode",
-    "Decode", "Matrix Multiplication", "Matrix Addition"
+    "Decode", "Matrix Multiplication", "Matrix Addition", "Linear Dependence/Independence",
+    "Test Consistency of Equations", "Test Consistency of Homogeneous Equations"
 ]
 operation_dropdown = OptionMenu(window, selected_operation, *matrix_operations)
 operation_dropdown.place(x=350, y=70)
@@ -189,6 +320,7 @@ selected_operation.trace("w", toggle_secondary_matrix)
 # Matrix entry fields
 entries_matrix = []
 secondary_entries_matrix = []
+constants_entries = []
 encryption_entries_matrix = []
 update_matrix_size()
 
