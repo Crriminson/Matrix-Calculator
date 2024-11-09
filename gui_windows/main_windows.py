@@ -64,71 +64,123 @@ def linear_dependence_independence(matrix):
     return result, "\n".join(steps)
 
 def echelon_form(matrix):
-    """Compute the echelon form of the matrix."""
+    """Compute the echelon form of the matrix with detailed steps."""
     steps = ["Computing Echelon Form:"]
-    echelon_matrix = np.linalg.matrix_rank(matrix)  # Placeholder for actual echelon form computation
-    rank = np.linalg.matrix_rank(matrix)
-    steps.append(f"Rank of matrix: {rank}")
-    steps.append(f"Echelon form of the matrix is:\n{echelon_matrix}")
-    return echelon_matrix, "\n".join(steps)
+    augmented_matrix = matrix.copy()
+    rows, cols = augmented_matrix.shape
+    for i in range(min(rows, cols)):
+        # Find the pivot
+        max_row = np.argmax(np.abs(augmented_matrix[i:, i])) + i
+        if augmented_matrix[max_row, i] == 0:
+            steps.append(f"No pivot in column {i+1}, moving to next column.")
+            continue
+        # Swap rows
+        augmented_matrix[[i, max_row]] = augmented_matrix[[max_row, i]]
+        steps.append(f"Swapped row {i+1} with row {max_row+1}:\n{augmented_matrix}")
+        # Make pivot 1
+        pivot = augmented_matrix[i, i]
+        augmented_matrix[i] = augmented_matrix[i] / pivot
+        steps.append(f"Normalized row {i+1} by dividing by pivot {pivot}:\n{augmented_matrix}")
+        # Eliminate below
+        for j in range(i+1, rows):
+            factor = augmented_matrix[j, i]
+            augmented_matrix[j] = augmented_matrix[j] - factor * augmented_matrix[i]
+            steps.append(f"Eliminated element at row {j+1}, column {i+1} by subtracting {factor} * row {i+1}:\n{augmented_matrix}")
+    steps.append("Echelon form achieved.")
+    return augmented_matrix, "\n".join(steps)
 
-def is_unitary(matrix):
-    """Check if the matrix is unitary."""
-    steps = ["Checking if the matrix is Unitary:"]
-    unitary = np.allclose(np.eye(matrix.shape[0]), matrix @ matrix.T.conj())
-    result = "Unitary" if unitary else "Not Unitary"
-    steps.append(result)
-    return result, "\n".join(steps)
+def rref(matrix):
+    """Compute the Reduced Row Echelon Form (RREF) with detailed steps."""
+    steps = ["Converting to Reduced Row Echelon Form:"]
+    rref_matrix = matrix.copy().astype(float)
+    rows, cols = rref_matrix.shape
+    lead = 0
+    for r in range(rows):
+        if lead >= cols:
+            break
+        i = r
+        while rref_matrix[i, lead] == 0:
+            i += 1
+            if i == rows:
+                i = r
+                lead += 1
+                if lead == cols:
+                    steps.append("RREF achieved.")
+                    return rref_matrix, "\n".join(steps)
+        rref_matrix[[i, r]] = rref_matrix[[r, i]]
+        steps.append(f"Swapped row {i+1} with row {r+1}:\n{rref_matrix}")
+        lv = rref_matrix[r, lead]
+        rref_matrix[r] = rref_matrix[r] / lv
+        steps.append(f"Normalized row {r+1} by dividing by leading value {lv}:\n{rref_matrix}")
+        for i in range(rows):
+            if i != r:
+                lv = rref_matrix[i, lead]
+                rref_matrix[i] = rref_matrix[i] - lv * rref_matrix[r]
+                steps.append(f"Eliminated element at row {i+1}, column {lead+1} by subtracting {lv} * row {r+1}:\n{rref_matrix}")
+        lead +=1
+    steps.append("Reduced Row Echelon Form achieved.")
+    return rref_matrix, "\n".join(steps)
 
 def normal_form(matrix):
-    """Compute the normal form of the matrix."""
-    steps = ["Computing Normal Form:"]
-    normal_matrix = matrix  # Placeholder for actual normal form computation
-    steps.append(f"Normal form of the matrix is:\n{normal_matrix}")
-    return normal_matrix, "\n".join(steps)
+    """Compute the normal form of the matrix with detailed steps."""
+    steps = ["Computing Normal Form using RREF:"]
+    rref_matrix, rref_steps = rref(matrix)
+    steps.append(rref_steps)
+    steps.append(f"Normal form of the matrix is:\n{rref_matrix}")
+    return rref_matrix, "\n".join(steps)
 
 def paq_form(matrix):
-    """Compute the PAQ form of the matrix."""
+    """Compute the PAQ form of the matrix with detailed steps."""
     steps = ["Computing PAQ Form:"]
     P, L, U = lu(matrix)
-    PAQ_matrix = P @ matrix @ U  # Placeholder for actual PAQ form computation
-    rank = np.linalg.matrix_rank(matrix)
-    steps.append(f"Rank of matrix: {rank}")
+    steps.append(f"Computed LU decomposition:\nP =\n{P}\nL =\n{L}\nU =\n{U}")
+    PAQ_matrix = P @ matrix @ U
     steps.append(f"PAQ form of the matrix is:\n{PAQ_matrix}")
     return PAQ_matrix, "\n".join(steps)
 
-def transpose(matrix):
-    """Compute the transpose of the matrix."""
-    steps = ["Computing Transpose:"]
-    transposed_matrix = matrix.T
-    steps.append(f"Transpose of the matrix is:\n{transposed_matrix}")
-    return transposed_matrix, "\n".join(steps)
+def is_unitary(matrix):
+    """Check if the matrix is unitary with detailed steps."""
+    steps = ["Checking if the matrix is Unitary:"]
+    identity = np.eye(matrix.shape[0])
+    product = matrix @ matrix.T.conj()
+    steps.append(f"Computed matrix * matrix.T.conj():\n{product}")
+    unitary = np.allclose(identity, product)
+    if unitary:
+        result = "Unitary"
+        steps.append("The matrix is unitary.")
+    else:
+        result = "Not Unitary"
+        steps.append("The matrix is not unitary.")
+    return result, "\n".join(steps)
 
 def is_orthogonal(matrix):
-    """Check if the matrix is orthogonal and solve for unknowns if any."""
+    """Check if the matrix is orthogonal with detailed steps."""
     steps = ["Checking if the matrix is Orthogonal:"]
-    unknowns = symbols('a b c')  # Add more symbols if needed
-    orthogonal = np.allclose(np.eye(matrix.shape[0]), matrix @ matrix.T)
-    
+    identity = np.eye(matrix.shape[0])
+    product = matrix @ matrix.T
+    steps.append(f"Computed matrix * matrix.T:\n{product}")
+    orthogonal = np.allclose(identity, product)
     if orthogonal:
         result = "Orthogonal"
-        steps.append(result)
+        steps.append("The matrix is orthogonal.")
     else:
         # Attempt to solve for unknowns
+        steps.append("The matrix is not orthogonal. Attempting to solve for unknowns:")
+        unknowns = symbols('a b c')  # Add more symbols as needed
         equations = []
         for i in range(matrix.shape[0]):
             for j in range(matrix.shape[1]):
                 if i == j:
-                    equations.append(Eq(matrix[i, j] * matrix[i, j], 1))
+                    equations.append(Eq(matrix[i, j] ** 2, 1))
                 else:
                     equations.append(Eq(matrix[i, j] * matrix[j, i], 0))
         solutions = solve(equations, unknowns)
         if solutions:
             result = f"Orthogonal with solutions: {solutions}"
-            steps.append(result)
+            steps.append(f"Solutions found: {solutions}")
         else:
             result = "Not Orthogonal"
-            steps.append(result)
+            steps.append("No solutions found. The matrix is not orthogonal.")
     return result, "\n".join(steps)
 
 def inverse(matrix):
@@ -155,15 +207,42 @@ def conjugate(matrix):
 def encode(matrix1, matrix2):
     """Encode the matrix using another matrix."""
     steps = ["Encoding Matrix:"]
+    # Detailed encoding steps
+    steps.append("Step 1: Validating dimensions of Matrix1 and Matrix2.")
+    if matrix1.shape[1] != matrix2.shape[0]:
+        raise ValueError("Number of columns in Matrix1 must equal number of rows in Matrix2.")
+    steps.append(f"Matrix1 dimensions: {matrix1.shape}")
+    steps.append(f"Matrix2 dimensions: {matrix2.shape}")
+    
+    steps.append("Step 2: Performing matrix multiplication (Matrix1 @ Matrix2).")
     encoded_matrix = matrix1 @ matrix2  # Placeholder for actual encoding logic
-    steps.append(f"Encoded matrix is:\n{encoded_matrix}")
+    steps.append(f"Result of multiplication:\n{encoded_matrix}")
+    
+    steps.append("Step 3: Encoding completed successfully.")
     return encoded_matrix, "\n".join(steps)
 
 def decode(matrix1, matrix2):
     """Decode the matrix using another matrix."""
     steps = ["Decoding Matrix:"]
-    decoded_matrix = matrix1 @ np.linalg.inv(matrix2)  # Placeholder for actual decoding logic
-    steps.append(f"Decoded matrix is:\n{decoded_matrix}")
+    # Detailed decoding steps
+    steps.append("Step 1: Validating dimensions of Matrix1 and Matrix2.")
+    if matrix2.shape[1] != matrix1.shape[0]:
+        raise ValueError("Number of columns in Matrix2 must equal number of rows in Matrix1.")
+    steps.append(f"Matrix1 dimensions: {matrix1.shape}")
+    steps.append(f"Matrix2 dimensions: {matrix2.shape}")
+    
+    steps.append("Step 2: Calculating the inverse of Matrix2.")
+    try:
+        inverse_matrix2 = np.linalg.inv(matrix2)
+        steps.append(f"Inverse of Matrix2:\n{inverse_matrix2}")
+    except np.linalg.LinAlgError:
+        raise ValueError("Matrix2 is singular and cannot be inverted.")
+    
+    steps.append("Step 3: Performing matrix multiplication (Matrix1 @ Inverse(Matrix2)).")
+    decoded_matrix = matrix1 @ inverse_matrix2  # Placeholder for actual decoding logic
+    steps.append(f"Result of multiplication:\n{decoded_matrix}")
+    
+    steps.append("Step 4: Decoding completed successfully.")
     return decoded_matrix, "\n".join(steps)
 
 def multiply_matrices(matrix1, matrix2):
@@ -180,13 +259,24 @@ def add_matrices(matrix1, matrix2):
     steps.append(f"Sum of the matrices is:\n{sum_matrix}")
     return sum_matrix, "\n".join(steps)
 
+def transpose(matrix):
+    """Compute the transpose of the matrix with detailed steps."""
+    steps = ["Computing Transpose of the matrix:"]
+    transpose_matrix = matrix.T
+    steps.append(f"Transpose of the matrix is:\n{transpose_matrix}")
+    return transpose_matrix, "\n".join(steps)
+
 # Perform matrix operation
 def perform_operation():
     operation = selected_operation.get()
     try:
         # Get main matrix values from entry fields
         matrix1 = np.array([[float(entry.get()) for entry in row] for row in entries_matrix])
-
+        
+        # Define matrix2 if the operation requires a second matrix
+        if operation in ["Encode", "Decode", "Matrix Multiplication", "Matrix Addition"]:
+            matrix2 = np.array([[float(entry.get()) for entry in row] for row in secondary_entries_matrix])
+        
         result, steps = None, ""
         if operation == "Test Consistency of Equations":
             # Retrieve the constants column if present for non-homogeneous equations
