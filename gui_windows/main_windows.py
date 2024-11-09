@@ -2,6 +2,7 @@ from pathlib import Path
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, StringVar, OptionMenu, messagebox
 import numpy as np
 from scipy.linalg import lu
+from sympy import symbols, Eq, solve
 
 # Paths
 OUTPUT_PATH = Path(__file__).parent
@@ -17,6 +18,8 @@ def check_consistency(matrix, constants=None):
     augmented_matrix = np.hstack((matrix, constants.reshape(-1, 1))) if constants is not None else matrix
     rank_coeff = np.linalg.matrix_rank(matrix)
     rank_augmented = np.linalg.matrix_rank(augmented_matrix)
+    steps.append(f"Rank of coefficient matrix: {rank_coeff}")
+    steps.append(f"Rank of augmented matrix: {rank_augmented}")
 
     if rank_coeff == rank_augmented:
         if rank_coeff == matrix.shape[1]:  # Unique solution case
@@ -35,6 +38,7 @@ def check_homogeneous_consistency(matrix):
     steps = ["Checking Consistency of Homogeneous Equations:"]
     rank = np.linalg.matrix_rank(matrix)
     num_columns = matrix.shape[1]
+    steps.append(f"Rank of matrix: {rank}")
 
     if rank == num_columns:
         steps.append("Homogeneous system has only the trivial solution.")
@@ -49,6 +53,7 @@ def linear_dependence_independence(matrix):
     steps = ["Checking Linear Dependence/Independence of Columns:"]
     rank = np.linalg.matrix_rank(matrix)
     num_columns = matrix.shape[1]
+    steps.append(f"Rank of matrix: {rank}")
 
     if rank == num_columns:
         steps.append("Columns are linearly independent.")
@@ -62,6 +67,8 @@ def echelon_form(matrix):
     """Compute the echelon form of the matrix."""
     steps = ["Computing Echelon Form:"]
     echelon_matrix = np.linalg.matrix_rank(matrix)  # Placeholder for actual echelon form computation
+    rank = np.linalg.matrix_rank(matrix)
+    steps.append(f"Rank of matrix: {rank}")
     steps.append(f"Echelon form of the matrix is:\n{echelon_matrix}")
     return echelon_matrix, "\n".join(steps)
 
@@ -85,6 +92,8 @@ def paq_form(matrix):
     steps = ["Computing PAQ Form:"]
     P, L, U = lu(matrix)
     PAQ_matrix = P @ matrix @ U  # Placeholder for actual PAQ form computation
+    rank = np.linalg.matrix_rank(matrix)
+    steps.append(f"Rank of matrix: {rank}")
     steps.append(f"PAQ form of the matrix is:\n{PAQ_matrix}")
     return PAQ_matrix, "\n".join(steps)
 
@@ -96,11 +105,30 @@ def transpose(matrix):
     return transposed_matrix, "\n".join(steps)
 
 def is_orthogonal(matrix):
-    """Check if the matrix is orthogonal."""
+    """Check if the matrix is orthogonal and solve for unknowns if any."""
     steps = ["Checking if the matrix is Orthogonal:"]
+    unknowns = symbols('a b c')  # Add more symbols if needed
     orthogonal = np.allclose(np.eye(matrix.shape[0]), matrix @ matrix.T)
-    result = "Orthogonal" if orthogonal else "Not Orthogonal"
-    steps.append(result)
+    
+    if orthogonal:
+        result = "Orthogonal"
+        steps.append(result)
+    else:
+        # Attempt to solve for unknowns
+        equations = []
+        for i in range(matrix.shape[0]):
+            for j in range(matrix.shape[1]):
+                if i == j:
+                    equations.append(Eq(matrix[i, j] * matrix[i, j], 1))
+                else:
+                    equations.append(Eq(matrix[i, j] * matrix[j, i], 0))
+        solutions = solve(equations, unknowns)
+        if solutions:
+            result = f"Orthogonal with solutions: {solutions}"
+            steps.append(result)
+        else:
+            result = "Not Orthogonal"
+            steps.append(result)
     return result, "\n".join(steps)
 
 def inverse(matrix):
